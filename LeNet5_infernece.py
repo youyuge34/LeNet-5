@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 INPUT_NODE = 784
 OUTPUT_NODE = 10
@@ -37,12 +38,15 @@ def inference(input_tensor, train, regularizer):
 
     with tf.name_scope("layer4-pool2"):
         pool2 = tf.nn.max_pool(relu2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
-        pool_shape = pool2.get_shape().as_list()
-        nodes = pool_shape[1] * pool_shape[2] * pool_shape[3]
-        reshaped = tf.reshape(pool2, [pool_shape[0], nodes])
+        
+        # pool_shape = pool2.get_shape()
+        # print 'pool_shape',pool_shape
+        # nodes = pool_shape[1] * pool_shape[2] * pool_shape[3]
+        # reshaped = np.reshape(pool2, [pool_shape[0], nodes])
+        reshaped = tf.contrib.layers.flatten(pool2)
 
     with tf.variable_scope('layer5-fc1'):
-        fc1_weights = tf.get_variable("weight", [nodes, FC_SIZE],
+        fc1_weights = tf.get_variable("weight", [reshaped.shape[1], FC_SIZE],
                                       initializer=tf.truncated_normal_initializer(stddev=0.1))
         if regularizer != None: tf.add_to_collection('losses', regularizer(fc1_weights))
         fc1_biases = tf.get_variable("bias", [FC_SIZE], initializer=tf.constant_initializer(0.1))
